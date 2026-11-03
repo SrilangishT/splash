@@ -1,0 +1,236 @@
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Cleanup existing GUI if re-running
+if playerGui:FindFirstChild("SrilangishHubCompact") then
+	playerGui.SrilangishHubCompact:Destroy()
+end
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SrilangishHubCompact"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+-- ==========================================
+-- 1. FLOATING TOGGLE BUTTON (Fixed Position, Not Draggable)
+-- ==========================================
+local toggleButton = Instance.new("ImageButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 30, 0.5, -25)
+toggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+toggleButton.BorderColor3 = Color3.fromRGB(50, 50, 60)
+toggleButton.BorderSizePixel = 1
+toggleButton.AutoButtonColor = false
+toggleButton.Image = "rbxthumb://type=Asset&id=105549818441575&w=150&h=150"
+toggleButton.Parent = screenGui
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 14)
+btnCorner.Parent = toggleButton
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(70, 70, 90)
+btnStroke.Transparency = 0.3
+btnStroke.Thickness = 1.5
+btnStroke.Parent = toggleButton
+
+-- ==========================================
+-- 2. COMPACT SCRIPT HUB WINDOW (YT Srilangishgaming)
+-- ==========================================
+local hubWindow = Instance.new("Frame")
+hubWindow.Name = "HubWindow"
+hubWindow.Size = UDim2.new(0, 310, 0, 340)
+hubWindow.Position = UDim2.new(0.5, -155, 0.5, -170)
+hubWindow.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
+hubWindow.BorderSizePixel = 0
+hubWindow.Visible = false -- Starts hidden, toggled by floating button
+hubWindow.Parent = screenGui
+
+local hubCorner = Instance.new("UICorner")
+hubCorner.CornerRadius = UDim.new(0, 10)
+hubCorner.Parent = hubWindow
+
+local hubStroke = Instance.new("UIStroke")
+hubStroke.Color = Color3.fromRGB(50, 50, 60)
+hubStroke.Thickness = 1.5
+hubStroke.Parent = hubWindow
+
+-- Title Bar / Header ("YT Srilangishgaming")
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 36)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "YT Srilangishgaming"
+titleLabel.TextColor3 = Color3.fromRGB(230, 230, 240)
+titleLabel.TextSize = 14
+titleLabel.Parent = hubWindow
+
+-- Tabs Container (Main, Visual, Misc)
+local tabsContainer = Instance.new("Frame")
+tabsContainer.Size = UDim2.new(1, -20, 0, 30)
+tabsContainer.Position = UDim2.new(0, 10, 0, 36)
+tabsContainer.BackgroundTransparency = 1
+tabsContainer.Parent = hubWindow
+
+local tabsLayout = Instance.new("UIListLayout")
+tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabsLayout.Padding = UDim.new(0, 6)
+tabsLayout.Parent = tabsContainer
+
+-- Content Container Pages Folder
+local pagesContainer = Instance.new("Folder")
+pagesContainer.Name = "PagesContainer"
+pagesContainer.Parent = hubWindow
+
+local function createTabPage(name)
+	local page = Instance.new("ScrollingFrame")
+	page.Name = name .. "Page"
+	page.Size = UDim2.new(1, -20, 1, -80)
+	page.Position = UDim2.new(0, 10, 0, 72)
+	page.BackgroundTransparency = 1
+	page.BorderSizePixel = 0
+	page.CanvasSize = UDim2.new(0, 0, 0, 260)
+	page.ScrollBarThickness = 3
+	page.Visible = (name == "Main")
+	page.Parent = pagesContainer
+	
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = page
+	return page
+end
+
+local mainPage = createTabPage("Main")
+local visualPage = createTabPage("Visual")
+local miscPage = createTabPage("Misc")
+
+-- Helper function to create clean toggle rows matching reference style
+local function createToggleRow(pageTarget, name, defaultState, order, callback)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 40)
+	row.BackgroundColor3 = Color3.fromRGB(34, 34, 40)
+	row.BorderSizePixel = 0
+	row.LayoutOrder = order
+	row.Parent = pageTarget
+	
+	local rowCorner = Instance.new("UICorner")
+	rowCorner.CornerRadius = UDim.new(0, 8)
+	rowCorner.Parent = row
+	
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0.7, 0, 1, 0)
+	label.Position = UDim2.new(0, 14, 0, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamMedium
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(210, 210, 220)
+	label.TextSize = 13
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = row
+	
+	-- Toggle Circle Switch button matching the screenshot style
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Size = UDim2.new(0, 24, 0, 24)
+	toggleBtn.Position = UDim2.new(1, -36, 0.5, -12)
+	toggleBtn.BackgroundColor3 = defaultState and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(130, 130, 140)
+	toggleBtn.AutoButtonColor = false
+	toggleBtn.Text = ""
+	toggleBtn.Parent = row
+	
+	local tCorner = Instance.new("UICorner")
+	tCorner.CornerRadius = UDim.new(1, 0) -- Perfect circle toggle
+	tCorner.Parent = toggleBtn
+	
+	local state = defaultState
+	toggleBtn.MouseButton1Click:Connect(function()
+		state = not state
+		toggleBtn.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(130, 130, 140)
+		if callback then callback(state) end
+	end)
+end
+
+-- Populate Main Tab features
+createToggleRow(mainPage, "Anti Ragdol", false, 1)
+createToggleRow(mainPage, "Esp Player", false, 2)
+createToggleRow(mainPage, "Esp OP Brainrot", false, 3)
+createToggleRow(mainPage, "leave Reset Button", false, 4)
+createToggleRow(mainPage, "lock base", false, 5)
+
+-- Tab buttons creation & switching logic
+local tabNames = {"Main", "Visual", "Misc"}
+local pages = {Main = mainPage, Visual = visualPage, Misc = miscPage}
+
+for i, tName in ipairs(tabNames) do
+	local tabBtn = Instance.new("TextButton")
+	tabBtn.Size = UDim2.new(0, 90, 0, 26)
+	tabBtn.BackgroundColor3 = (i == 1) and Color3.fromRGB(45, 45, 55) or Color3.fromRGB(32, 32, 38)
+	tabBtn.AutoButtonColor = false
+	tabBtn.Font = Enum.Font.GothamBold
+	tabBtn.Text = tName
+	tabBtn.TextColor3 = (i == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 160)
+	tabBtn.TextSize = 12
+	tabBtn.Parent = tabsContainer
+	
+	local tCorner = Instance.new("UICorner")
+	tCorner.CornerRadius = UDim.new(0, 6)
+	tCorner.Parent = tabBtn
+	
+	tabBtn.MouseButton1Click:Connect(function()
+		for _, p in pairs(pages) do p.Visible = false end
+		for _, b in ipairs(tabsContainer:GetChildren()) do
+			if b:IsA("TextButton") then
+				b.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
+				b.TextColor3 = Color3.fromRGB(150, 150, 160)
+			end
+		end
+		pages[tName].Visible = true
+		tabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+		tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	end)
+end
+
+-- ==========================================
+-- 3. INTERACTION & DRAGGING LOGIC
+-- ==========================================
+toggleButton.MouseButton1Click:Connect(function()
+	hubWindow.Visible = not hubWindow.Visible
+end)
+
+-- Draggable Main Hub Window via Title Bar
+local hubDragging = false
+local hubDragStart, hubStartPos
+
+titleLabel.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		hubDragging = true
+		hubDragStart = input.Position
+		hubStartPos = hubWindow.Position
+		
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				hubDragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if hubDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - hubDragStart
+		hubWindow.Position = UDim2.new(
+			hubStartPos.X.Scale, 
+			hubStartPos.X.Offset + delta.X, 
+			hubStartPos.Y.Scale, 
+			hubStartPos.Y.Offset + delta.Y
+		)
+	end
+end)
